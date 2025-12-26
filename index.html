@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BZM — Card Store</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+</head>
+<body>
+
+  <header class="top">
+    <h1 id="app-title">BZM</h1>
+    <div class="lang-wrap">
+      <label for="lang-select" class="sr-only">Language</label>
+      <select id="lang-select" aria-label="Language selector">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="de">Deutsch</option>
+        <option value="tr">Türkçe</option>
+        <option value="ar">العربية</option>
+      </select>
+    </div>
+  </header>
+
+  <main>
+    <!-- Auth / Store -->
+    <section id="auth-screen" class="screen">
+      <h2 id="txt-login">Login</h2>
+      <input id="login-email" placeholder="Email" type="email">
+      <input id="login-pass" placeholder="Password" type="password">
+      <button id="login-btn" class="btn">Login</button>
+
+      <hr>
+
+      <h2 id="txt-create">Create Account (Buy card)</h2>
+      <label class="label" id="txt-choose">Choose card type</label>
+      <select id="selected-card">
+        <!-- options will be set dynamically by app.js -->
+      </select>
+
+      <input id="reg-name" placeholder="Full Name">
+      <input id="reg-email" placeholder="Email" type="email">
+      <input id="reg-pass" placeholder="Password" type="password">
+      <input id="reg-ref" placeholder="Referral Code (required to buy)">
+      <input id="reg-redotpay" placeholder="RedotPay ID (optional)">
+
+      <label class="label">Admin ID</label>
+      <input id="user-admin-id" disabled>
+
+      <div id="paypal-area" style="max-width:400px;margin:10px auto;text-align:center;">
+        <div id="paypal-button-container" class="hidden" style="max-width:360px;margin:10px auto;"></div>
+      </div>
+
+      <button id="pay-btn" class="btn primary">طلب إنشاء الحساب</button>
+    </section>
+
+    <!-- User Dashboard -->
+    <section id="user-screen" class="screen hidden">
+      <h2 id="txt-user-dashboard">User Dashboard</h2>
+      <div id="user-panel">
+        <p id="user-info"></p>
+        <p id="user-referrals"></p>
+        <p id="txt-refcode">Your referral code: <strong id="user-refcode"></strong></p>
+        <p id="user-price"></p>
+        <p id="user-bonus"></p>
+        <p id="txt-redotpay">RedotPay ID: <strong id="user-redotpay"></strong></p>
+      </div>
+
+      <h3 id="txt-your-cards">Your Cards</h3>
+      <div id="user-cards" class="cards-grid"></div>
+
+      <div class="actions">
+        <button id="request-bonus-btn" class="btn">Request Bonus</button>
+        <button id="logout-btn" class="btn">Logout</button>
+      </div>
+    </section>
+
+    <!-- Admin Panel (hidden) -->
+    <section id="admin-screen" class="screen hidden">
+      <h2 id="txt-admin-panel">Admin Panel</h2>
+
+      <div class="admin-grid">
+        <div>
+          <h3 id="txt-prices">Prices</h3>
+          <input id="price-diamond" type="number" placeholder="Diamond Price">
+          <input id="price-gold" type="number" placeholder="Gold Price">
+          <input id="price-silver" type="number" placeholder="Silver Price">
+        </div>
+
+        <div>
+          <h3 id="txt-bonuses">Bonuses (amount)</h3>
+          <input id="bonus-diamond" type="number" placeholder="Diamond Bonus">
+          <input id="bonus-gold" type="number" placeholder="Gold Bonus">
+          <input id="bonus-silver" type="number" placeholder="Silver Bonus">
+        </div>
+
+        <div>
+          <h3 id="txt-paypal">طلب إنشاء الحساب</h3>
+          <input id="paypal-client" placeholder="PayPal Client ID / Email">
+          <input id="paypal-silver-url" placeholder="PayPal Silver URL">
+          <input id="paypal-gold-url" placeholder="PayPal Gold URL">
+          <input id="paypal-diamond-url" placeholder="PayPal Diamond URL">
+
+        </div>
+      </div>
+
+      
+
+      <h3>Admin ID (قيمة عامة)</h3>
+      <input id="admin-global-id" placeholder="أدخل Admin ID">
+
+      <button id="save-admin" class="btn primary">Save Settings</button>
+
+      <hr>
+
+      <h3 id="txt-create-free">Create Free User & Grant N Cards</h3>
+      <input id="admin-free-name" placeholder="Full Name">
+      <input id="admin-free-email" placeholder="Email" type="email">
+      <input id="admin-free-pass" placeholder="Password (optional)">
+      <label class="label">Card type</label>
+      <select id="admin-free-card">
+        <option value="diamond">Diamond</option>
+        <option value="gold">Gold</option>
+        <option value="silver">Silver</option>
+      </select>
+      <input id="admin-free-count" type="number" value="5" min="1" placeholder="Number of cards">
+      <button id="admin-create-free" class="btn">Create user & Grant cards</button>
+
+      <h3 id="txt-gen-existing">Generate Cards for Existing User</h3>
+
+      <h3>Set / Update RedotPay ID</h3>
+      <input id="admin-set-redotpay-email" placeholder="User email">
+      <input id="admin-set-redotpay-id" placeholder="RedotPay ID">
+      <button id="admin-set-redotpay-btn" class="btn">Save RedotPay ID</button>
+
+      <input id="gen-email" placeholder="User email">
+      <select id="gen-type">
+        <option value="diamond">Diamond</option>
+        <option value="gold">Gold</option>
+        <option value="silver">Silver</option>
+      </select>
+      <input id="gen-count" type="number" value="5">
+      <button id="gen-btn" class="btn">Generate Codes</button>
+
+      <hr>
+
+      <h3 id="txt-pending">Pending Bonus Requests</h3>
+
+      <h3>طلبات إنشاء الحساب</h3>
+      <div id="account-requests"></div>
+      <div id="bonus-requests"></div>
+
+      <hr>
+
+      <h3 id="txt-users-codes">Users & Codes</h3>
+      <div id="users-codes"></div>
+
+      <div class="actions">
+        <button id="admin-logout" class="btn">Close Admin</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small id="txt-footer">© BZM</small>
+  </footer>
+
+<script src="app.js"></script>
+</body>
+</html>
